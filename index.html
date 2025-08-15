@@ -1,0 +1,606 @@
+﻿<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="UTF-8">
+<title>حاسب المعدل السنوي — نسخة مُصلحة</title>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700&display=swap" rel="stylesheet">
+<style>
+    * { 
+        box-sizing: border-box; 
+        margin: 0; 
+        padding: 0; 
+    }
+
+    body {
+        font-family: 'Cairo', sans-serif;
+        background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 25%, #16213e 50%, #0f0f23 75%, #000000 100%);
+        position: relative;
+        min-height: 100vh;
+        padding: 20px;
+        overflow-x: hidden;
+    }
+
+    body::before {
+        content: '';
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: 
+            radial-gradient(circle at 20% 20%, rgba(120, 119, 198, 0.1) 0%, transparent 50%),
+            radial-gradient(circle at 80% 80%, rgba(255, 103, 103, 0.1) 0%, transparent 50%),
+            radial-gradient(circle at 40% 60%, rgba(64, 224, 208, 0.1) 0%, transparent 50%);
+        pointer-events: none;
+        z-index: -1;
+    }
+
+    .container {
+        max-width: 900px;
+        margin: 0 auto;
+        position: relative;
+        z-index: 1;
+    }
+
+    .header-section {
+        text-align: center;
+        margin-bottom: 40px;
+        padding: 40px 0;
+    }
+
+    .main-title {
+        font-size: 3.5rem;
+        font-weight: 700;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        margin-bottom: 10px;
+        text-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
+        animation: titleGlow 3s ease-in-out infinite alternate;
+    }
+
+    @keyframes titleGlow {
+        from { filter: drop-shadow(0 0 20px rgba(102, 126, 234, 0.5)); }
+        to { filter: drop-shadow(0 0 40px rgba(118, 75, 162, 0.7)); }
+    }
+
+    .subtitle {
+        color: #a0a0a0;
+        font-size: 1.2rem;
+        font-weight: 300;
+        margin-top: 10px;
+    }
+
+    .calculator-card {
+        background: rgba(255, 255, 255, 0.05);
+        backdrop-filter: blur(20px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 25px;
+        padding: 40px;
+        box-shadow: 
+            0 25px 50px rgba(0, 0, 0, 0.5),
+            inset 0 1px 0 rgba(255, 255, 255, 0.1);
+        position: relative;
+        overflow: hidden;
+        animation: cardFloat 6s ease-in-out infinite;
+    }
+
+    @keyframes cardFloat {
+        0%, 100% { transform: translateY(0px); }
+        50% { transform: translateY(-10px); }
+    }
+
+    .calculator-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+        animation: shimmer 3s infinite;
+    }
+
+    @keyframes shimmer {
+        0% { left: -100%; }
+        100% { left: 100%; }
+    }
+
+    .subjects-grid {
+        display: grid;
+        gap: 20px;
+        margin-bottom: 40px;
+    }
+
+    .subject-row {
+        display: grid;
+        grid-template-columns: 1fr 120px 80px;
+        gap: 20px;
+        align-items: center;
+        background: rgba(255, 255, 255, 0.03);
+        padding: 20px;
+        border-radius: 15px;
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .subject-row::before {
+        content: '';
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 3px;
+        height: 100%;
+        background: linear-gradient(45deg, #667eea, #764ba2);
+        transform: scaleY(0);
+        transition: transform 0.3s ease;
+    }
+
+    .subject-row:hover {
+        background: rgba(255, 255, 255, 0.08);
+        border-color: rgba(102, 126, 234, 0.3);
+        transform: translateX(-5px);
+        box-shadow: 0 10px 30px rgba(102, 126, 234, 0.2);
+    }
+.subject-row:hover::before {
+        transform: scaleY(1);
+    }
+
+    .subject-name {
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: #fff;
+        text-align: right;
+    }
+
+    .score-input {
+        width: 100%;
+        padding: 15px;
+        background: rgba(255, 255, 255, 0.1);
+        border: 2px solid rgba(255, 255, 255, 0.1);
+        border-radius: 12px;
+        color: #fff;
+        font-size: 1.1rem;
+        font-weight: 600;
+        text-align: center;
+        transition: all 0.3s ease;
+        outline: none;
+    }
+
+    .score-input:focus {
+        background: rgba(255, 255, 255, 0.15);
+        border-color: #667eea;
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.2);
+        transform: scale(1.05);
+    }
+
+    .coefficient {
+        width: 60px;
+        height: 60px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        font-size: 1.2rem;
+        color: #fff;
+        box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+        margin: 0 auto;
+    }
+
+    .results-section {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 20px;
+        margin-top: 40px;
+    }
+
+    .result-card {
+        background: rgba(255, 255, 255, 0.05);
+        backdrop-filter: blur(15px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 20px;
+        padding: 30px;
+        text-align: center;
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .result-card::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        left: -50%;
+        width: 200%;
+        height: 200%;
+        background: conic-gradient(from 0deg, transparent, rgba(102, 126, 234, 0.1), transparent);
+        animation: rotate 4s linear infinite;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+
+    .result-card:hover::before {
+        opacity: 1;
+    }
+
+    @keyframes rotate {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+
+    .result-label {
+        font-size: 1rem;
+        color: #a0a0a0;
+        margin-bottom: 10px;
+        font-weight: 400;
+        position: relative;
+        z-index: 1;
+    }
+
+    .result-value {
+        font-size: 2.5rem;
+        font-weight: 700;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        margin-top: 10px;
+        position: relative;
+        z-index: 1;
+    }
+
+    .grade-status {
+        margin-top: 20px;
+        padding: 15px;
+        border-radius: 10px;
+        font-weight: 600;
+        text-align: center;
+        transition: all 0.3s ease;
+        opacity: 0;
+        transform: translateY(20px);
+    }
+
+    .grade-status.show {
+        opacity: 1;
+        transform: translateY(0);
+    }
+
+    .grade-excellent {
+        background: rgba(34, 197, 94, 0.2);
+        border: 1px solid rgba(34, 197, 94, 0.3);
+        color: #22c55e;
+    }
+
+    .grade-good {
+        background: rgba(59, 130, 246, 0.2);
+        border: 1px solid rgba(59, 130, 246, 0.3);
+        color: #3b82f6;
+    }
+
+    .grade-average {
+        background: rgba(251, 191, 36, 0.2);
+        border: 1px solid rgba(251, 191, 36, 0.3);
+        color: #fbbf24;
+    }
+
+    .grade-poor {
+        background: rgba(239, 68, 68, 0.2);
+        border: 1px solid rgba(239, 68, 68, 0.3);
+        color: #ef4444;
+    }
+
+    @media (max-width: 768px) {
+        .main-title {
+            font-size: 2.5rem;
+        }
+
+        .calculator-card {
+            padding: 25px;
+            margin: 10px;
+        }
+
+        .subject-row {
+            grid-template-columns: 1fr;
+            gap: 15px;
+            text-align: center;
+        }
+
+        .subjects-grid {
+            gap: 15px;
+        }
+
+        .coefficient {
+            margin: 10px auto 0;
+        }
+
+        .
+results-section {
+            grid-template-columns: 1fr;
+            gap: 15px;
+        }
+
+        .result-value {
+            font-size: 2rem;
+        }
+    }
+
+    .floating-elements {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        pointer-events: none;
+        z-index: -1;
+    }
+
+    .floating-element {
+        position: absolute;
+        width: 10px;
+        height: 10px;
+        background: rgba(102, 126, 234, 0.3);
+        border-radius: 50%;
+        animation: float 8s infinite linear;
+    }
+
+    @keyframes float {
+        0% {
+            transform: translateY(100vh) rotate(0deg);
+            opacity: 0;
+        }
+        10% {
+            opacity: 1;
+        }
+        90% {
+            opacity: 1;
+        }
+        100% {
+            transform: translateY(-10vh) rotate(360deg);
+            opacity: 0;
+        }
+    }
+
+    .progress-bar {
+        width: 100%;
+        height: 6px;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 3px;
+        margin: 20px 0;
+        overflow: hidden;
+    }
+
+    .progress-fill {
+        height: 100%;
+        background: linear-gradient(90deg, #667eea, #764ba2);
+        border-radius: 3px;
+        width: 0%;
+        transition: width 0.5s ease;
+        position: relative;
+    }
+
+    .progress-fill::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+        animation: progressShimmer 1.5s infinite;
+    }
+
+    @keyframes progressShimmer {
+        0% { transform: translateX(-100%); }
+        100% { transform: translateX(100%); }
+    }
+</style>
+</head>
+<body>
+    <div class="floating-elements" id="floatingElements"></div>
+
+    <div class="container">
+        <div class="header-section">
+            <h1 class="main-title">حاسب المعدل السنوي</h1>
+            <p class="subtitle">السنة الثانية - ملحقة مسيلة</p>
+        </div>
+<p style="font-size:12px; color:#888; margin-top:5px; text-align:center;">
+    Designed by <strong>Kheiro</strong>
+</p>
+
+        <div class="calculator-card">
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill"></div>
+            </div>
+
+            <div class="subjects-grid">
+                <div class="subject-row">
+                    <div class="subject-name">U1: cardio</div>
+                    <!-- نستخدم type=text مع inputmode=decimal لدعم أرقام عربية والفاصلة -->
+                    <input type="text" class="score-input" id="u1" inputmode="decimal" placeholder="0-20" oninput="calculateAverage()">
+                    <div class="coefficient">4</div>
+                </div>
+
+                <div class="subject-row">
+                    <div class="subject-name">U2: digestif</div>
+                    <input type="text" class="score-input" id="u2" inputmode="decimal" placeholder="0-20" oninput="calculateAverage()">
+                    <div class="coefficient">4</div>
+                </div>
+
+                <div class="subject-row">
+                    <div class="subject-name">U3: urinaire</div>
+                    <input type="text" class="score-input" id="u3" inputmode="decimal" placeholder="0-20" oninput="calculateAverage()">
+                    <div class="coefficient">4</div>
+                </div>
+
+                <div class="subject-row">
+                    <div class="subject-name">U4: Endo</div>
+                    <input type="text" class="score-input" id="u4" inputmode="decimal" placeholder="0-20" oninput="calculateAverage()">
+                    <div class="coefficient">4</div>
+                </div>
+
+                <div class="subject-row">
+                    <div class="subject-name">U5: neuro</div>
+                    <input type="text" class="score-input" id="u5" inputmode="decimal" placeholder="0-20" oninput="calculateAverage()">
+                    <div class="coefficient">4</div>
+                </div>
+<div class="subject-row">
+                    <div class="subject-name">M1: Immunologie</div>
+                    <input type="text" class="score-input" id="m1" inputmode="decimal" placeholder="0-20" oninput="calculateAverage()">
+                    <div class="coefficient">2</div>
+                </div>
+
+                <div class="subject-row">
+                    <div class="subject-name">M2: Génétique</div>
+                    <input type="text" class="score-input" id="m2" inputmode="decimal" placeholder="0-20" oninput="calculateAverage()">
+                    <div class="coefficient">2</div>
+                </div>
+            </div>
+
+            <div class="results-section">
+                <div class="result-card">
+                    <div class="result-label">المجموع الكلي</div>
+                    <div class="result-value" id="total" data-value="0">0.00</div>
+                </div>
+
+                <div class="result-card">
+                    <div class="result-label">مجموع المعاملات</div>
+                    <div class="result-value">24</div>
+                </div>
+
+                <div class="result-card">
+                    <div class="result-label">المعدل النهائي</div>
+                    <div class="result-value" id="average" data-value="0">0.00</div>
+                </div>
+            </div>
+
+            <div class="grade-status" id="gradeStatus"></div>
+        </div>
+    </div>
+
+    <script>
+        // إنشاء العناصر المتحركة
+        function createFloatingElements() {
+            const container = document.getElementById('floatingElements');
+            for (let i = 0; i < 20; i++) {
+                const element = document.createElement('div');
+                element.className = 'floating-element';
+                element.style.left = Math.random() * 100 + '%';
+                element.style.animationDelay = Math.random() * 8 + 's';
+                element.style.animationDuration = (Math.random() * 5 + 5) + 's';
+                container.appendChild(element);
+            }
+        }
+
+        // تحويل الأرقام العربية-الهندية والفواصل إلى صيغة مفهومة للمتصفح
+        const arabicDigits = '٠١٢٣٤٥٦٧٨٩';
+        function normalizeNumber(value) {
+            value = String(value ?? '');
+            // استبدال الأرقام العربية-الهندية بالأرقام الإنجليزية
+            value = value.replace(/[٠-٩]/g, d => '0123456789'[arabicDigits.indexOf(d)]);
+            // استبدال الفاصلة العربية أو الإنجليزية بنقطة
+            value = value.replace(/[،٫,]/g, '.');
+            const num = parseFloat(value);
+            if (isNaN(num)) return 0;
+            // تقليم إلى المدى 0..20
+            return Math.max(0, Math.min(20, num));
+        }
+
+        // منع تراكم المؤقتات عند الكتابة السريعة
+        const _timers = {};
+
+        function animateValue(elementId, end, duration) {
+            const element = document.getElementById(elementId);
+            // نقرأ القيمة السابقة المخزنة في data-value لضمان رقم صحيح دائمًا
+            const start = parseFloat(element.getAttribute('data-value')) || 0;
+            const range = end - start;
+            if (_timers[elementId]) {
+                clearInterval(_timers[elementId]);
+            }
+            if (duration <= 0 || range === 0) {
+                element.textContent = end.toFixed(2);
+                element.setAttribute('data-value', end);
+                return;
+            }
+            const step = 16;
+            const increment = range / (duration / step);
+            let current = start;
+            _timers[elementId] = setInterval(() => {
+                current += increment;
+                if ((increment > 0 && current >= end) || (increment < 0 && current <= end)) {
+                    current = end;
+                    clearInterval(_timers[elementId]);
+                    delete _timers[elementId];
+                }
+                element.textContent = current.toFixed(2);
+                element.setAttribute('data-value', current);
+            }, step);
+        }
+
+        function calculateAverage() {
+            let u1 = normalizeNumber(document.
+getElementById("u1").value);
+            let u2 = normalizeNumber(document.getElementById("u2").value);
+            let u3 = normalizeNumber(document.getElementById("u3").value);
+            let u4 = normalizeNumber(document.getElementById("u4").value);
+            let u5 = normalizeNumber(document.getElementById("u5").value);
+            let m1 = normalizeNumber(document.getElementById("m1").value);
+            let m2 = normalizeNumber(document.getElementById("m2").value);
+
+            const total = (u1 + u2 + u3 + u4 + u5) * 4 + (m1 + m2) * 2;
+            const average = total / 24;
+
+            // تحديث القيم مع تأثير العد (نبدأ دائمًا من المخزن وليس من النص)
+            animateValue("total", total, 600);
+            animateValue("average", average, 600);
+
+            // تحديث شريط التقدم
+            let progress = Math.max(0, Math.min(100, (average / 20) * 100));
+            document.getElementById("progressFill").style.width = progress + "%";
+
+            // تحديث حالة الدرجة
+            updateGradeStatus(average);
+        }
+
+        function updateGradeStatus(average) {
+            const statusElement = document.getElementById("gradeStatus");
+            let statusClass, statusText;
+
+            if (average >= 16) {
+                statusClass = "grade-excellent";
+                statusText = "محشمتش كي ديتها 🙂";
+            } else if (average >= 14) {
+                statusClass = "grade-good";
+                statusText = "🎉 صحيت";
+            } else if (average >= 12) {
+                statusClass = "grade-good";
+                statusText = "مليحة بصحتك";
+            } else if (average >= 10) {
+                statusClass = "grade-average";
+                statusText = "سلكتلها 😂";
+            } else if (average > 0) {
+                statusClass = "grade-poor";
+                statusText = "ان شاء الله تطلّع 🤲";
+            } else {
+                statusElement.classList.remove("show");
+                statusElement.textContent = "";
+                return;
+            }
+
+            statusElement.className = grade-status ${statusClass} show;
+            statusElement.textContent = statusText;
+        }
+
+        // تهيئة الصفحة
+        document.addEventListener('DOMContentLoaded', function() {
+            createFloatingElements();
+            calculateAverage();
+        });
+    </script>
+</body>
+</html>
